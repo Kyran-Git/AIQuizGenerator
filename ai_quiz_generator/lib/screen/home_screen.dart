@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ai_quiz_generator/widgets/primary_buttons.dart';
+import 'package:get/get.dart';
+import 'package:ai_quiz_generator/controller/ai_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,6 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _formkey = GlobalKey<FormState>();
+  AiController aiController = AiController();
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
