@@ -24,11 +24,11 @@ class AppTheme {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: primaryApp,
         indicatorColor: primaryApp,
         indicatorSize: TabBarIndicatorSize.tab,
-        overlayColor: MaterialStateColor.transparent,
+        overlayColor: WidgetStateColor.transparent,
         splashFactory: NoSplash.splashFactory,
         dividerColor: lightWhite,
       ),
@@ -36,7 +36,7 @@ class AppTheme {
         backgroundColor: primaryApp,
         foregroundColor: lightWhite,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: lightWhite,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
@@ -52,7 +52,6 @@ class AppTheme {
         backgroundColor: AppTheme.primaryAppExtraLight,
         selectedColor: AppTheme.primaryAppLight,
       ),
-      dialogBackgroundColor: AppTheme.primaryAppExtraLight,
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
@@ -91,11 +90,13 @@ class AppTheme {
       ),
       splashColor: lightWhite,
       iconTheme: const IconThemeData(color: Colors.black),
-      indicatorColor: primaryApp,
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: primaryAppExtraLight,
         showDragHandle: true,
         surfaceTintColor: primaryAppLight,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppTheme.primaryAppExtraLight,
       ),
     );
   }
