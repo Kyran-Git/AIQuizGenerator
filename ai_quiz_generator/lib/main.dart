@@ -1,5 +1,8 @@
+import 'package:ai_quiz_generator/controller/binding/app_binding.dart';
 import 'package:ai_quiz_generator/screen/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:ai_quiz_generator/theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,6 +13,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: "AI Quiz Generator", home: HomeScreen());
+    return GetMaterialApp(
+      initialBinding: AppBinding(),
+      title: "AI Quiz Generator",
+      theme: AppTheme.lightTheme(),
+      home: HomeScreen(),
+      debugShowCheckedModeBanner: false,
+    );
   }
 }
