@@ -33,13 +33,44 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20.0, top: 10.0),
+                      child: Text(
+                        "Create Quiz for",
+                        style: TextStyle(
+                          fontSize: 34.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20.0),
+                    TextFormField(
+                      controller: aiController.createQuizExplanation,
+                      minLines: 4,
+                      maxLines: 6,
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(20.0),
+                        border: InputBorder.none,
+                        hintText:
+                            "Explain here the topic you want a quiz on...",
+                        hintStyle: TextStyle(
+                          fontSize: 34.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "This is Required";
+                        }
+                        return null; //valid
+                      },
+                    ),
+                  ],
+                ),
               ),
               ElevatedButton(
                 onPressed: () {
