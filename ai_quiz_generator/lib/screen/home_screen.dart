@@ -12,7 +12,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _formkey = GlobalKey<FormState>();
-  AiController aiController = AiController();
+  AiController aiController = Get.find();
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
