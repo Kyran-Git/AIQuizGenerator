@@ -82,9 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: double.infinity,
                 height: 50.0,
                 child: PrimaryButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formkey.currentState!.validate()) {
-                      // Process data.
+                      await aiController.createQuiz();
                     }
                   },
                   text: "GENERATE QUIZ",
