@@ -1,66 +1,73 @@
+import 'dart:developer';
+
+import 'package:ai_quiz_generator/data/models/quiz.dart';
 import 'package:ai_quiz_generator/data/models/quiz_question.dart';
+import 'package:ai_quiz_generator/data/models/quiz_settings.dart';
+import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
+import 'package:ai_quiz_generator/data/models/question_type.dart';
+import 'package:ai_quiz_generator/data/services/quiz_generator_service.dart';
 import 'package:ai_quiz_generator/screen/exam_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:ai_quiz_generator/constants/gemini_constants.dart';
-
-import 'dart:convert';
-import 'dart:developer';
 
 class AiController extends GetxController {
-  TextEditingController createQuizExplanation = TextEditingController();
-  List<QuizQuestion> questions = [];
+  AiController({required this.quizGeneratorService});
 
-  String demoquestions = "Hello";
+  final QuizGeneratorService quizGeneratorService;
 
-  Future createQuiz() async {
-    // AI quiz creation logic here
+  final TextEditingController createQuizExplanation = TextEditingController();
+  DifficultyLevel selectedDifficulty = DifficultyLevel.medium;
+  QuestionType selectedType = QuestionType.multipleChoice;
+  int numOfQuestions = 5;
+  Quiz? currentQuiz;
+  List<Question> questions = [];
+
+  Future<void> createQuiz() async {
     try {
-      log("AiController :: createQuiz()");
-      /*final model = GenerativeModel(
-        model: 'gemini-2.5-flash',
-        apiKey: GeminiConstants.API_KEY,
-    );
+      log('AiController :: createQuiz()');
+      final settings = QuizSettings(
+        sourceText: createQuizExplanation.text.trim(),
+        numOfQuestions: numOfQuestions,
+        difficulty: selectedDifficulty,
+        type: selectedType,
+      );
+      final generatedQuestions = await quizGeneratorService.generateQuiz(
+        settings,
+      );
 
-    final prompt = generatePrompt();
-    final content = [Content.text(prompt)];
-    final response = await model.generateContent(content);
-    String? responseText = response.text;*/
+      currentQuiz = Quiz(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: settings.sourceText.isEmpty
+            ? 'Untitled Quiz'
+            : settings.sourceText,
+        questions: generatedQuestions,
+        settings: settings,
+      );
 
-    String responseText = demoquestions;
-    if(responseText != null){
-      responseText = responseText.trim();
-      responseText = responseText.trim().substring(7, responseText.length - 3).trim();
-      Map<String, dynamic> map = jsonDecode(responseText);
-      questions = (map["questions"] as List<dynamic>).map((q){
-        return QuizQuestion.fromJson(q);
-      }).toList();
-      Get.to(() => ExamScreen());
-    }
+      questions = generatedQuestions;
+      Get.to(() => const ExamScreen());
     } catch (e) {
-      log("AiController :: createQuiz() :: Error:$e");
+      log('AiController :: createQuiz() :: Error:$e');
     }
   }
 
-  String generatePrompt(){
+  String generatePrompt(QuizSettings settings) {
     return '''
-        You are a professional test agency that specialize in generating high-quality multiple-choice question (MCQs). Given a topic by the user, you will create a JSON-formatted output containing a list of MCQs. Each question should include four answer choice, one correct answer, and an explanation.
+You are a professional test agency that specializes in generating high-quality multiple-choice questions (MCQs). Given a topic, create a JSON-formatted output containing a list of MCQs. Each question must include four answer choices, one correct answer, and an explanation.
 
-        Generate question that vary in difficulty (easy, medium and hard). Ensure they are clear, concise, and relevant to the given topic.
+Vary difficulty (easy, medium, hard) and keep questions clear, concise, and relevant to: ${settings.sourceText}.
 
-        Output Format (JSON):
-        {
-          "question":[{
-            "question": "<MCQ question text>",
-            "options": ["option A", "option B", "option C", "option D"],
-            "correct_amswer": "<correct option>",
-            "difficulty": "<easy | medium | hard>",
-          },
-          ...
-          ]
-        }
-        Now, generate MCQs for the topic: '${createQuizExplanation.text.trim()}'."
-      ''';
+Output Format (JSON):
+{
+  "questions": [{
+    "questionId": "<id>",
+    "questionText": "<MCQ question text>",
+    "options": ["option A", "option B", "option C", "option D"],
+    "correctAnswer": "<correct option>",
+    "difficulty": "<easy | medium | hard>",
+    "explanation": "<brief explanation>"
+  }]
+}
+''';
   }
 }
