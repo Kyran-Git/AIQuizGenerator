@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:ai_quiz_generator/widgets/primary_buttons.dart';
-import 'package:get/get.dart';
 import 'package:ai_quiz_generator/controller/ai_controller.dart';
+import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
+import 'package:ai_quiz_generator/data/models/question_type.dart';
+import 'package:ai_quiz_generator/widgets/primary_buttons.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,6 +76,76 @@ class _HomeScreenState extends State<HomeScreen> {
                         return null; //valid
                       },
                     ),
+                    const SizedBox(height: 12.0),
+                    DropdownButtonFormField<DifficultyLevel>(
+                      value: aiController.selectedDifficulty,
+                      decoration: const InputDecoration(
+                        labelText: "Difficulty",
+                      ),
+                      items: DifficultyLevel.values
+                          .map(
+                            (level) => DropdownMenuItem(
+                              value: level,
+                              child: Text(level.name.toUpperCase()),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            aiController.selectedDifficulty = value;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12.0),
+                    DropdownButtonFormField<QuestionType>(
+                      value: aiController.selectedType,
+                      decoration: const InputDecoration(
+                        labelText: "Question Type",
+                      ),
+                      items: QuestionType.values
+                          .map(
+                            (type) => DropdownMenuItem(
+                              value: type,
+                              child: Text(
+                                type.name.replaceAll('_', ' ').toUpperCase(),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            aiController.selectedType = value;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12.0),
+                    TextFormField(
+                      initialValue: aiController.numOfQuestions.toString(),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: "Number of Questions",
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Enter a number";
+                        }
+                        final parsed = int.tryParse(value);
+                        if (parsed == null || parsed <= 0) {
+                          return "Enter a valid positive number";
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        final parsed = int.tryParse(value ?? '');
+                        if (parsed != null && parsed > 0) {
+                          aiController.numOfQuestions = parsed;
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -84,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: PrimaryButton(
                   onPressed: () async {
                     if (_formkey.currentState!.validate()) {
+                      _formkey.currentState!.save();
                       await aiController.createQuiz();
                     }
                   },

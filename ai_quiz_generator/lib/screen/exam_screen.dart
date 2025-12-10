@@ -17,14 +17,12 @@ class _ExamScreenState extends State<ExamScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Exam mode"),
-      ),
+      appBar: AppBar(title: Text("Exam mode")),
       body: bodyContainer(),
     );
   }
 
-  Widget bodyContainer(){
+  Widget bodyContainer() {
     return Container(
       padding: EdgeInsets.all(8.0),
       child: Column(
@@ -32,17 +30,18 @@ class _ExamScreenState extends State<ExamScreen> {
           ListView.builder(
             shrinkWrap: true,
             itemCount: aiController.questions.length,
-            itemBuilder: (context, index){
+            itemBuilder: (context, index) {
               return questionTile(question: aiController.questions[index]);
-          })
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget questionTile({required QuizQuestion question}){
+  Widget questionTile({required Question question}) {
     return ListTile(
-      title: Text(question.question),
+      title: Text(question.questionText),
       trailing: Text(question.difficulty),
     );
   }
