@@ -1,5 +1,5 @@
 import 'package:ai_quiz_generator/controller/binding/app_binding.dart';
-import 'package:ai_quiz_generator/screen/home_screen.dart';
+import 'package:ai_quiz_generator/screen/auth/auth_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ai_quiz_generator/theme/app_theme.dart';
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       initialBinding: AppBinding(),
       title: "AI Quiz Generator",
       theme: AppTheme.lightTheme(),
-      home: HomeScreen(),
+      home: const AuthGate(),
       debugShowCheckedModeBanner: false,
     );
   }
