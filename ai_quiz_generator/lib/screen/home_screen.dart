@@ -1,6 +1,8 @@
 import 'package:ai_quiz_generator/controller/ai_controller.dart';
+import 'package:ai_quiz_generator/controller/auth_controller.dart';
 import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
 import 'package:ai_quiz_generator/data/models/question_type.dart';
+import 'package:ai_quiz_generator/screen/auth/auth_gate.dart';
 import 'package:ai_quiz_generator/widgets/primary_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _formkey = GlobalKey<FormState>();
   AiController aiController = Get.find();
+  AuthController authController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +26,19 @@ class _HomeScreenState extends State<HomeScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("Home")),
+        appBar: AppBar(
+          title: const Text("Home"),
+          actions: [
+            IconButton(
+              onPressed: () async {
+                await authController.logout();
+                Get.offAll(() => const AuthGate());
+              },
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+            ),
+          ],
+        ),
         body: bodyContainer(),
       ),
     );
