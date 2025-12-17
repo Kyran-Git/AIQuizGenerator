@@ -22,6 +22,10 @@ class AiController extends GetxController {
   Quiz? currentQuiz;
   List<Question> questions = [];
 
+  // Retry status for Gemini backoff
+  final RxBool isRetrying = false.obs;
+  final RxInt retryAttempt = 0.obs; // 1..N
+
   Future<void> createQuiz() async {
     try {
       log('AiController :: createQuiz()');
@@ -33,6 +37,10 @@ class AiController extends GetxController {
       );
       final generatedQuestions = await quizGeneratorService.generateQuiz(
         settings,
+        onRetry: (attempt, error) {
+          isRetrying.value = true;
+          retryAttempt.value = attempt;
+        },
       );
 
       currentQuiz = Quiz(
@@ -46,8 +54,11 @@ class AiController extends GetxController {
 
       questions = generatedQuestions;
       Get.to(() => const ExamScreen());
+      isRetrying.value = false;
+      retryAttempt.value = 0;
     } catch (e) {
       log('AiController :: createQuiz() :: Error:$e');
+      isRetrying.value = false;
     }
   }
 
