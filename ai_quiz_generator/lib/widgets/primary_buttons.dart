@@ -15,7 +15,8 @@ class PrimaryButton extends StatelessWidget {
   final Color? textColor;
   final bool isDesktop;
 
-  PrimaryButton({
+  const PrimaryButton({
+    super.key,
     required this.onPressed,
     required this.text,
     this.isOutlined = false,
