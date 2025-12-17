@@ -5,8 +5,10 @@ import 'package:ai_quiz_generator/data/models/quiz_question.dart';
 import 'package:ai_quiz_generator/data/models/quiz_settings.dart';
 import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
 import 'package:ai_quiz_generator/data/models/question_type.dart';
+import 'package:ai_quiz_generator/data/models/user.dart';
 import 'package:ai_quiz_generator/data/services/quiz_generator_service.dart';
 import 'package:ai_quiz_generator/screen/exam_screen.dart';
+import 'package:ai_quiz_generator/controller/auth_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
@@ -25,6 +27,11 @@ class AiController extends GetxController {
   Future<void> createQuiz() async {
     try {
       log('AiController :: createQuiz()');
+
+      //get auth controllers
+      final authController = Get.find<AuthController>();
+      final currentUser = authController.currentUser;
+
       final settings = QuizSettings(
         sourceText: createQuizExplanation.text.trim(),
         numOfQuestions: numOfQuestions,
@@ -35,6 +42,11 @@ class AiController extends GetxController {
         settings,
       );
 
+      // 3. Handle Guest ID safely
+      // If currentUser is null, use '' (Guest). 
+      // This is safe because we are just storing it in RAM for now.
+      String safeUserId = currentUser?.userId ?? '';
+
       currentQuiz = Quiz(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: settings.sourceText.isEmpty
@@ -42,12 +54,14 @@ class AiController extends GetxController {
             : settings.sourceText,
         questions: generatedQuestions,
         settings: settings,
+        userId: safeUserId,
       );
 
       questions = generatedQuestions;
       Get.to(() => const ExamScreen());
     } catch (e) {
       log('AiController :: createQuiz() :: Error:$e');
+      Get.snackbar("Error", "Failed to generate quiz. Please try again.");
     }
   }
 
@@ -70,4 +84,8 @@ Output Format (JSON):
 }
 ''';
   }
+}
+
+extension on Rxn<User> {
+  get userId => null;
 }
