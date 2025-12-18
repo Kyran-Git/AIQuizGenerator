@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryApp = Colors.orange;
-  static Color primaryAppLight = Colors.orange.shade100;
-  static Color lightWhite = Colors.grey.shade100;
-  static Color primaryAppExtraLight = Colors.orange.shade50;
+  // Cold blue color palette
+  static const Color primaryApp = Color(0xFF4169E1); // Royal Blue
+  static Color primaryAppLight = const Color(0xFF87CEEB); // Sky Blue
+  static Color lightWhite = const Color(
+    0xFFF0F4F8,
+  ); // Light blue-gray background
+  static Color primaryAppExtraLight = const Color(
+    0xFFE6F2FF,
+  ); // Very light blue
+  static const Color cardBackground = Color(0xFFFFFFFF); // White cards
 
   static ThemeData lightTheme() {
     return ThemeData(
       primaryColor: primaryAppLight,
-      primarySwatch: Colors.orange,
+      primarySwatch: Colors.blue,
       scaffoldBackgroundColor: lightWhite,
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: primaryApp,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: lightWhite,
-        surfaceTintColor: lightWhite,
+        backgroundColor: cardBackground,
+        surfaceTintColor: cardBackground,
         titleTextStyle: const TextStyle(
-          color: Colors.black,
+          color: Color(0xFF2C3E50),
           fontSize: 20.0,
           fontWeight: FontWeight.w500,
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Color(0xFF2C3E50)),
+        elevation: 0,
       ),
       tabBarTheme: TabBarThemeData(
         labelColor: primaryApp,
@@ -34,17 +41,18 @@ class AppTheme {
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primaryApp,
-        foregroundColor: lightWhite,
+        foregroundColor: Colors.white,
       ),
       cardTheme: CardThemeData(
-        color: lightWhite,
+        color: cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
         ),
-        elevation: 6,
+        elevation: 4,
+        shadowColor: primaryApp.withValues(alpha: 0.1),
       ),
       buttonTheme: ButtonThemeData(
-        buttonColor: primaryAppLight,
+        buttonColor: primaryApp,
         textTheme: ButtonTextTheme.primary,
       ),
 
@@ -56,10 +64,10 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
         ),
-        color: lightWhite,
+        color: cardBackground,
         elevation: 6.0,
         surfaceTintColor: primaryAppExtraLight,
-        textStyle: TextStyle(color: lightWhite),
+        textStyle: const TextStyle(color: Color(0xFF2C3E50)),
       ),
       listTileTheme: ListTileThemeData(
         tileColor: primaryAppExtraLight,
@@ -68,11 +76,17 @@ class AppTheme {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        border: const OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
           borderSide: BorderSide(color: primaryAppLight),
         ),
-        labelStyle: const TextStyle(color: primaryApp),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: primaryApp, width: 2),
+        ),
+        labelStyle: TextStyle(color: primaryApp),
+        filled: true,
+        fillColor: cardBackground,
       ),
       expansionTileTheme: ExpansionTileThemeData(
         shape: RoundedRectangleBorder(
@@ -88,16 +102,14 @@ class AppTheme {
         backgroundColor:
             primaryAppExtraLight, //background color of children area
       ),
-      splashColor: lightWhite,
-      iconTheme: const IconThemeData(color: Colors.black),
+      splashColor: primaryAppLight.withValues(alpha: 0.2),
+      iconTheme: const IconThemeData(color: Color(0xFF2C3E50)),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: primaryAppExtraLight,
+        backgroundColor: cardBackground,
         showDragHandle: true,
         surfaceTintColor: primaryAppLight,
       ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: AppTheme.primaryAppExtraLight,
-      ),
+      dialogTheme: DialogThemeData(backgroundColor: cardBackground),
     );
   }
 }

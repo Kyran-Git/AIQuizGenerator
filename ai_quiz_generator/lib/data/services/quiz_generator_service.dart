@@ -7,7 +7,10 @@ import 'package:ai_quiz_generator/data/models/quiz_settings.dart';
 import 'package:ai_quiz_generator/data/services/gemini_api.dart';
 
 abstract class QuizGeneratorService {
-  Future<List<Question>> generateQuiz(QuizSettings settings);
+  Future<List<Question>> generateQuiz(
+    QuizSettings settings, {
+    void Function(int attempt, Object error)? onRetry,
+  });
 }
 
 /// Real implementation using Gemini API with temperature-based difficulty.
@@ -31,7 +34,10 @@ class GeminiQuizGeneratorService implements QuizGeneratorService {
   }
 
   @override
-  Future<List<Question>> generateQuiz(QuizSettings settings) async {
+  Future<List<Question>> generateQuiz(
+    QuizSettings settings, {
+    void Function(int attempt, Object error)? onRetry,
+  }) async {
     try {
       log('GeminiQuizGeneratorService :: generateQuiz()');
 
@@ -41,6 +47,7 @@ class GeminiQuizGeneratorService implements QuizGeneratorService {
       final response = await geminiApi.sendPrompt(
         prompt,
         temperature: temperature,
+        onRetry: onRetry,
       );
       log('Gemini response received');
 
@@ -114,7 +121,10 @@ Generate the JSON now:''';
 /// Temporary mock implementation for testing.
 class MockQuizGeneratorService implements QuizGeneratorService {
   @override
-  Future<List<Question>> generateQuiz(QuizSettings settings) async {
+  Future<List<Question>> generateQuiz(
+    QuizSettings settings, {
+    void Function(int attempt, Object error)? onRetry,
+  }) async {
     return [
       Question(
         id: 'q1',
