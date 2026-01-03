@@ -6,10 +6,7 @@ from typing import List, Optional
 
 app = FastAPI(title="AI Quiz Generator API")
 
-# --- Security: Read password from Environment Variable ---
-# If DB_PASSWORD is not set in your terminal, it defaults to the fallback (for local testing)
-# CAUTION: For public repos, rely on the export command, don't hardcode the real password here.
-db_password = os.getenv('DB_PASSWORD', 'YourStrongPasswordHere')
+db_password = os.getenv('DB_PASSWORD', 'StrongP@ssw0rd2025!')
 
 DB_CONFIG = {
     "server": "localhost",

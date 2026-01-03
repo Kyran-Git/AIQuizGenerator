@@ -5,7 +5,7 @@ import os
 DB_CONFIG = {
     'server': 'localhost',
     'user': 'sa',
-    'password': os.getenv('DB_PASSWORD', 'YourStrongPasswordHere'),
+    'password': os.getenv('DB_PASSWORD', 'StrongP@ssw0rd2025!'),
     'database': 'master' # Connect to 'master' first to verify the engine is alive
 }
 
