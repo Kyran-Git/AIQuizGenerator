@@ -3,6 +3,7 @@ import 'package:ai_quiz_generator/controller/auth_controller.dart';
 import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
 import 'package:ai_quiz_generator/data/models/question_type.dart';
 import 'package:ai_quiz_generator/screen/auth/auth_gate.dart';
+import 'package:ai_quiz_generator/screen/history_screen.dart';
 import 'package:ai_quiz_generator/theme/app_theme.dart';
 import 'package:ai_quiz_generator/widgets/primary_buttons.dart';
 import 'package:flutter/material.dart';
@@ -113,6 +114,10 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.history,
         title: 'History',
         subtitle: 'Past attempts',
+        onTap: () {
+          // Navigate to the Library Screen
+          Get.to(() => const HistoryTab()); 
+        },
       ),
       _InfoPill(
         icon: Icons.analytics_outlined,
@@ -121,10 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
     return SizedBox(
-      height: 92,
+      height: 100,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         itemBuilder: (_, i) => items[i],
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemCount: items.length,
@@ -291,49 +296,73 @@ class _InfoPill extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
   const _InfoPill({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      decoration: BoxDecoration(
-        color: AppTheme.primaryApp,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 160,
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryApp.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            padding: const EdgeInsets.all(8),
-            child: Icon(icon, color: AppTheme.primaryApp, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryApp.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Icon(icon, color: AppTheme.primaryApp),
+            ),
+            const SizedBox(width: 12.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C3E50),
+                    ),
                   ),
-                ),
-                Text(subtitle, style: const TextStyle(color: Colors.white70)),
-              ],
+                  const SizedBox(height: 4.0),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF5C6B7A),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
