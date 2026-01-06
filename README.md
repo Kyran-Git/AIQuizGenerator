@@ -12,6 +12,7 @@ The Flutter project lives in the `ai_quiz_generator/` subfolder. From a fresh cl
 4. Run on your preferred device/target
 
 ```bash
+cd AiQuizGenerator
 cd ai_quiz_generator
 flutter pub get
 flutter run
