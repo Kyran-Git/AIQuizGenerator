@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ai_quiz_generator/theme/app_theme.dart';
 
 class PrimaryButton extends StatelessWidget {
-  final Function() onPressed;
+  final VoidCallback? onPressed;
   final String text;
   final bool isFullWidth;
   final bool isRounded;
@@ -15,7 +15,8 @@ class PrimaryButton extends StatelessWidget {
   final Color? textColor;
   final bool isDesktop;
 
-  PrimaryButton({
+  const PrimaryButton({
+    super.key,
     required this.onPressed,
     required this.text,
     this.isOutlined = false,
