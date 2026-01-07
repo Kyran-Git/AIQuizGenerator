@@ -59,7 +59,7 @@ class HistoryTab extends StatelessWidget {
             itemBuilder: (context, index) {
               final quiz = controller.myLibrary[index];
               return Card(
-                elevation: 2, // Slightly lower elevation for a cleaner look
+                elevation: 2,
                 color: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
@@ -84,10 +84,10 @@ class HistoryTab extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text("${quiz.questions.length} Questions • ${quiz.settings.difficulty}"),
                   ),
+                  trailing: const Icon(Icons.refresh, color: Color(0xFF4169E1)), // Retry Icon
+                  
                   onTap: () {
-                    // Navigate to details
-                    // controller.currentQuiz = quiz;
-                    // Get.to(() => const ExamScreen());
+                    controller.retryQuiz(quiz);
                   },
                 ),
               );

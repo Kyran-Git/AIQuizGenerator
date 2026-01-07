@@ -143,4 +143,25 @@ class AiController extends GetxController {
       Get.snackbar("Error", "Failed to save quiz.");
     }
   }
+
+  void retryQuiz(Quiz quiz) {
+    // 1. Create a deep copy of questions with 'userAnswer' wiped to null.
+    final List<Question> cleanQuestions = quiz.questions.map((q) {
+      return Question(
+        id: q.id,
+        questionText: q.questionText,
+        options: List<String>.from(q.options), // Copy the list
+        correctAnswer: q.correctAnswer,
+        difficulty: q.difficulty,
+        explanation: q.explanation,
+      );
+    }).toList();
+
+    // 2. Set as the current active quiz
+    currentQuiz = quiz;
+    questions = cleanQuestions; // Use the clean list
+
+    // 3. Navigate to Exam
+    Get.to(() => const ExamScreen());
+  }
 }

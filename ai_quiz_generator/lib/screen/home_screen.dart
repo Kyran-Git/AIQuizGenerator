@@ -4,6 +4,7 @@ import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
 import 'package:ai_quiz_generator/data/models/question_type.dart';
 import 'package:ai_quiz_generator/screen/auth/auth_gate.dart';
 import 'package:ai_quiz_generator/screen/history_screen.dart';
+import 'package:ai_quiz_generator/screen/analyze_screen.dart';
 import 'package:ai_quiz_generator/theme/app_theme.dart';
 import 'package:ai_quiz_generator/widgets/primary_buttons.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,17 @@ class _HomeScreenState extends State<HomeScreen> {
   final _formkey = GlobalKey<FormState>();
   AiController aiController = Get.find();
   AuthController authController = Get.find();
-
+  @override
+  void initState() {
+    super.initState();
+    // 1. Load the library immediately so the "Done" count is accurate
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (aiController.myLibrary.isEmpty) {
+        aiController.loadLibrary();
+      }
+    }
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -104,35 +115,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _quickStats() {
-    final items = [
-      _InfoPill(
-        icon: Icons.check_circle,
-        title: 'Done',
-        subtitle: 'Completed quizzes',
-      ),
-      _InfoPill(
-        icon: Icons.history,
-        title: 'History',
-        subtitle: 'Past attempts',
-        onTap: () {
-          // Navigate to the Library Screen
-          Get.to(() => const HistoryTab()); 
-        },
-      ),
-      _InfoPill(
-        icon: Icons.analytics_outlined,
-        title: 'Analyze',
-        subtitle: 'Review scores',
-      ),
-    ];
     return SizedBox(
-      height: 100,
-      child: ListView.separated(
+      height: 120,
+      child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        itemBuilder: (_, i) => items[i],
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemCount: items.length,
+        children: [
+          Obx(() => _InfoPill(
+            icon: Icons.check_circle,
+            title: 'Done',
+            // Display the dynamic count length
+            subtitle: '${aiController.myLibrary.length} Completed', 
+          )),
+          
+          const SizedBox(width: 10),
+
+          _InfoPill(
+            icon: Icons.history,
+            title: 'History',
+            subtitle: 'Past attempts',
+            onTap: () {
+              Get.to(() => const HistoryTab());
+            },
+          ),
+          
+          const SizedBox(width: 10),
+
+          _InfoPill(
+            icon: Icons.analytics_outlined,
+            title: 'Analyze',
+            subtitle: 'Review scores',
+            onTap: () {
+              if (aiController.myLibrary.isEmpty) {
+                 aiController.loadLibrary().then((_) {
+                    Get.to(() => const AnalyzeScreen());
+                 });
+              } else {
+                 Get.to(() => const AnalyzeScreen());
+              }
+            },
+          ),
+        ],
       ),
     );
   }
@@ -310,7 +333,7 @@ class _InfoPill extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 160,
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.0),
