@@ -1,3 +1,3 @@
 class GeminiConstants {
-  static const String API_KEY = "AIzaSyACEdkLPAQnPuqZ928JjuPwvTOrnNIIKuI";
+  static const String API_KEY = "";
 }
