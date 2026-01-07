@@ -18,7 +18,7 @@ def reset_database():
         cursor = conn.cursor()
 
         print("💥 DROPPING EXISTING TABLES...")
-        # Order matters! Drop children (Questions) before parents (Quizzes, Users)
+        
         cursor.execute("IF OBJECT_ID('Questions', 'U') IS NOT NULL DROP TABLE Questions")
         cursor.execute("IF OBJECT_ID('Quizzes', 'U') IS NOT NULL DROP TABLE Quizzes")
         cursor.execute("IF OBJECT_ID('Users', 'U') IS NOT NULL DROP TABLE Users")
@@ -40,8 +40,8 @@ def reset_database():
                 id NVARCHAR(50) PRIMARY KEY,
                 userId NVARCHAR(50) NOT NULL,
                 title NVARCHAR(255),
-                settingsJson NVARCHAR(MAX),   -- New Column
-                createdAt DATETIME DEFAULT GETDATE(), -- New Column
+                settingsJson NVARCHAR(MAX),
+                createdAt DATETIME DEFAULT GETDATE(),
                 FOREIGN KEY (userId) REFERENCES Users(userId)
             )
         """)

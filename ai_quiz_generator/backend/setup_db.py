@@ -48,6 +48,7 @@ def setup():
                 id NVARCHAR(50) PRIMARY KEY,
                 userId NVARCHAR(50) FOREIGN KEY REFERENCES Users(userId),
                 title NVARCHAR(255),
+                settingsJson NVARCHAR(MAX),
                 createdAt DATETIME DEFAULT GETDATE(),
                 FOREIGN KEY (userId) REFERENCES Users(userId)
             )

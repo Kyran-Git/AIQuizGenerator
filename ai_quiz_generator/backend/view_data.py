@@ -21,12 +21,20 @@ def view_tables():
             print(f"ID: {u['userId']} | User: {u['username']} | Pass: {u['password']}")
 
         print("\n--- 📝 QUIZZES TABLE ---")
-        cursor.execute("SELECT id, title, topic FROM Quizzes")
+        cursor.execute("SELECT * FROM Quizzes")
         quizzes = cursor.fetchall()
         if not quizzes:
             print("(No quizzes found)")
         for q in quizzes:
-            print(f"ID: {q['id']} | Title: {q['title']} | Topic: {q['topic']}")
+            print(f"ID: {q['id']} | Title: {q['title']}")
+
+        print("\n--- ❓ QUESTIONS TABLE ---")
+        cursor.execute("SELECT id, questionText, difficulty FROM Questions")
+        questions = cursor.fetchall()
+        if not questions:
+            print("(No questions found)")
+        for ques in questions:
+            print(f"ID: {ques['id']} | Q: {ques['questionText']} | Difficulty: {ques['difficulty']}")
 
         conn.close()
 
