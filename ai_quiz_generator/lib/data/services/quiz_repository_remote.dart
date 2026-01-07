@@ -3,6 +3,7 @@ import 'package:ai_quiz_generator/data/models/quiz_question.dart';
 import 'package:ai_quiz_generator/data/models/quiz_settings.dart';
 import 'package:ai_quiz_generator/data/services/api_client.dart';
 import 'package:ai_quiz_generator/data/services/quiz_repository.dart';
+import 'package:uuid/uuid.dart';
 
 class QuizRepositoryRemote implements QuizRepository {
   
@@ -14,13 +15,20 @@ class QuizRepositoryRemote implements QuizRepository {
       "userId": quiz.userId,
       "title": quiz.title,
       "settings": quiz.settings.toJson(),
-      "questions": quiz.questions.map((q) => {
-        "id": q.id,
-        "questionText": q.questionText,
-        "correctAnswer": q.correctAnswer,
-        "options": q.options,
-        "difficulty": q.difficulty,
-        "explanation": q.explanation ?? ""
+      "questions": quiz.questions.map((q) {
+        String safeId = q.id;
+        if (safeId.length < 5 || !safeId.contains('-')) {
+             safeId = const Uuid().v4(); 
+        }
+
+        return {
+          "id": safeId, // <--- NEW: Send safe UUID
+          "questionText": q.questionText,
+          "correctAnswer": q.correctAnswer,
+          "options": q.options,
+          "difficulty": q.difficulty,
+          "explanation": q.explanation ?? ""
+        };
       }).toList(),
     };
 

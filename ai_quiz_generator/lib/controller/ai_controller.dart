@@ -38,9 +38,11 @@ class AiController extends GetxController {
   // Retry status for Gemini backoff
   final RxBool isRetrying = false.obs;
   final RxInt retryAttempt = 0.obs; // 1..N
+  final RxBool isGenerating = false.obs;
 
   Future<void> createQuiz() async {
     try {
+      isGenerating.value = true;
       log('AiController :: createQuiz()');
 
       //get auth controllers
@@ -83,6 +85,8 @@ class AiController extends GetxController {
       log('AiController :: createQuiz() :: Error:$e');
       Get.snackbar("Error", "Failed to generate quiz. Please try again.");
       isRetrying.value = false;
+    } finally {
+      isGenerating.value = false;
     }
   }
 
@@ -137,6 +141,7 @@ class AiController extends GetxController {
     }
     try {
       await quizRepo.saveQuiz(currentQuiz!);
+      myLibrary.add(currentQuiz!);
       log('AiController :: saveCurrentQuiz() :: Quiz saved successfully.');
     } catch (e) {
       log('AiController :: saveCurrentQuiz() :: Error:$e');

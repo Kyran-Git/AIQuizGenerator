@@ -271,17 +271,30 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: double.infinity,
               height: 50.0,
-              child: PrimaryButton(
-                onPressed: () async {
-                  if (_formkey.currentState!.validate()) {
-                    _formkey.currentState!.save();
-                    await aiController.createQuiz();
-                  }
-                },
-                text: "Generate Quiz",
-                isRounded: true,
-                isFullWidth: true,
-              ),
+              // 1. Wrap in Obx to listen to changes
+              child: Obx(() {
+                // 2. Check the state
+                final bool isLoading = aiController.isGenerating.value;
+
+                return PrimaryButton(
+                  // 3. If loading, show "Generating..."
+                  text: isLoading ? "Generating Quiz..." : "Generate Quiz",
+                  
+                  // 4. If loading, disable the button (null logic)
+                  onPressed: isLoading 
+                      ? null // This usually greys out the button
+                      : () async {
+                          if (_formkey.currentState!.validate()) {
+                            _formkey.currentState!.save();
+                            // Close keyboard
+                            FocusScope.of(context).unfocus(); 
+                            await aiController.createQuiz();
+                          }
+                        },
+                  isRounded: true,
+                  isFullWidth: true,
+                );
+              }),
             ),
             const SizedBox(height: 8.0),
             Obx(() {
