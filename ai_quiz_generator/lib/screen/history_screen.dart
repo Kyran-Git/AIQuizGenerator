@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ai_quiz_generator/controller/ai_controller.dart';
+import 'package:ai_quiz_generator/screen/pdf_preview_screen.dart'; // Adjust path based on where you saved the file
 // import 'package:ai_quiz_generator/screen/exam_screen.dart';
 
 class HistoryTab extends StatelessWidget {
@@ -84,11 +85,28 @@ class HistoryTab extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text("${quiz.questions.length} Questions • ${quiz.settings.difficulty}"),
                   ),
-                  trailing: const Icon(Icons.refresh, color: Color(0xFF4169E1)), // Retry Icon
-                  
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Retry',
+                        icon: const Icon(Icons.refresh, color: Color(0xFF4169E1)),
+                        onPressed: () { controller.retryQuiz(quiz); },
+                      ),
+                      IconButton(
+                        tooltip: 'Download',
+                        icon: const Icon(Icons.download, color: Color(0xFF4169E1)),
+                        onPressed: () {
+                          Get.to(() => PdfPreviewScreen(quiz: quiz));
+                        },
+                      ),
+                    ],
+                  ),
+
                   onTap: () {
                     controller.retryQuiz(quiz);
                   },
+
                 ),
               );
             },
