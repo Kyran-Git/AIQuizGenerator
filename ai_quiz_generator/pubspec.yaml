@@ -39,7 +39,9 @@ dependencies:
   shared_preferences: ^2.3.2
   http: ^1.1.2
   uuid: ^4.0.0
-
+  pdf: ^3.11.1
+  printing: ^5.13.2
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
