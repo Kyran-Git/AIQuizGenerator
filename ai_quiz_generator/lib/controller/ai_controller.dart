@@ -182,4 +182,19 @@ class AiController extends GetxController {
     // 3. Navigate to Exam
     Get.to(() => const ExamScreen());
   }
+
+  void updateQuestion(int index, {String? text, String? answer, List<String>? options}) {
+    // 1. Get the existing question at that position
+    final oldQ = questions[index];
+    
+    // 2. Replace it with a new Question object using the updated values
+    questions[index] = Question(
+      id: oldQ.id,
+      questionText: text ?? oldQ.questionText,
+      options: options ?? List<String>.from(oldQ.options),
+      correctAnswer: answer ?? oldQ.correctAnswer,
+      explanation: oldQ.explanation,
+      difficulty: oldQ.difficulty,
+    );
+  }
 }
