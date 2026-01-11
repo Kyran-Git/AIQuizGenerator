@@ -78,9 +78,25 @@ class _SignupScreenState extends State<SignupScreen> {
                 focusNode: _passwordFocus,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                validator: (val) => (val == null || val.isEmpty)
-                    ? 'Password is required'
-                    : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Password is required";
+                  }
+
+                  // Regex for complexity
+                  // 1. (?=.*[A-Z])       : At least one uppercase
+                  // 2. (?=.*[a-z])       : At least one lowercase
+                  // 3. (?=.*[0-9])       : At least one number
+                  // 4. (?=.*[!@#\$&*~]) : At least one special char
+                  // 5. .{8,}             : At least 8 characters long
+                  String pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
+                  RegExp regex = RegExp(pattern);
+
+                  if (!regex.hasMatch(value)) {
+                    return "Password must have 8+ chars, \ninclude Upper, Lower, Number & Symbol.";
+                  }
+                  return null;
+                },
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _submitSignup(),
               ),
