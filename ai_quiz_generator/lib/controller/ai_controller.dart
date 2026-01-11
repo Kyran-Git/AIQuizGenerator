@@ -150,20 +150,33 @@ class AiController extends GetxController {
   }
 
   void retryQuiz(Quiz quiz) {
+    String newQuizId = DateTime.now().millisecondsSinceEpoch.toString();
     // 1. Create a deep copy of questions with 'userAnswer' wiped to null.
-    final List<Question> cleanQuestions = quiz.questions.map((q) {
+    final List<Question> cleanQuestions = quiz.questions.asMap().entries.map((entry) {
+      int index = entry.key;
+      Question q = entry.value;
+
       return Question(
-        id: q.id,
+        id: "${newQuizId}_$index", 
         questionText: q.questionText,
-        options: List<String>.from(q.options), // Copy the list
+        options: List<String>.from(q.options),
         correctAnswer: q.correctAnswer,
         difficulty: q.difficulty,
         explanation: q.explanation,
       );
     }).toList();
 
+    // 3. Create the NEW Quiz Object
+    Quiz newQuizAttempt = Quiz(
+      id: newQuizId,
+      userId: quiz.userId,    
+      settings: quiz.settings,
+      questions: cleanQuestions,
+      title: quiz.title,
+    );
+
     // 2. Set as the current active quiz
-    currentQuiz = quiz;
+    currentQuiz = newQuizAttempt;
     questions = cleanQuestions; // Use the clean list
 
     // 3. Navigate to Exam
