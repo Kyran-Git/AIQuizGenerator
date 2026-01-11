@@ -36,8 +36,8 @@ def setup():
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' AND xtype='U')
             CREATE TABLE Users (
                 userId NVARCHAR(50) PRIMARY KEY,
-                username NVARCHAR(50) NOT NULL UNIQUE,
-                password NVARCHAR(50) NOT NULL
+                username NVARCHAR(50) COLLATE Latin1_General_CS_AS NOT NULL UNIQUE,
+                password NVARCHAR(50)  COLLATE Latin1_General_CS_AS NOT NULL
             )
         """)
 
@@ -61,7 +61,7 @@ def setup():
                 id NVARCHAR(50) PRIMARY KEY,
                 quizId NVARCHAR(50) FOREIGN KEY REFERENCES Quizzes(id),
                 questionText NVARCHAR(MAX),
-                correctAnswer NVARCHAR(255),
+                correctAnswer NVARCHAR(MAX),
                 optionsJson NVARCHAR(MAX),
                 difficulty NVARCHAR(50),
                 explanation NVARCHAR(MAX),
