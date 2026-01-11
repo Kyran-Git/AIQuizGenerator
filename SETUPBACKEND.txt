@@ -49,6 +49,11 @@ docker ps
 
 
 # 7. Create database
+Before running any python files, we need to specify the password we previously set in terminal
+The password will only be remembered by the terminal that you ran so take Note
+The command:
+(in CMD) set DB_PASSWORD=StrongP@ssw0rd2025!
+(in Powershell) $env:DB_PASSWORD="StrongP@ssw0rd2025!"
 Back to the first terminal, create database by running command:
 python setup_db.py (or reset_db.py, if existing database is corrupted and wanted to repair)
 
