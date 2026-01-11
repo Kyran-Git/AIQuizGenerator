@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import pymssql
 import os
 import json
+import re
 from typing import List, Optional
 
 app = FastAPI(title="AI Quiz Generator API")
@@ -75,6 +76,22 @@ def login(user: UserLogin):
 
 @app.post("/auth/signup")
 def signup(user: UserLogin):
+    # --- Password Complexity Check ---
+    # Regex Explanation:
+    # (?=.*?[A-Z])       : At least one Uppercase
+    # (?=.*?[a-z])       : At least one Lowercase
+    # (?=.*?[0-9])       : At least one Digit
+    # (?=.*?[!@#\$&*~]) : At least one Special Character
+    # .{8,}             : Minimum 8 characters total
+    password_pattern = r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$"
+    
+    if not re.match(password_pattern, user.password):
+        # Return success: False so the Flutter app knows to show the error message
+        return {
+            "success": False, 
+            "message": "Password weak: Needs 8+ chars, Upper, Lower, Digit & Symbol."
+        }
+    
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
