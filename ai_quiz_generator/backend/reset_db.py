@@ -52,7 +52,7 @@ def reset_database():
                 id NVARCHAR(50) PRIMARY KEY,
                 quizId NVARCHAR(50) NOT NULL,
                 questionText NVARCHAR(MAX),
-                correctAnswer NVARCHAR(255),
+                correctAnswer NVARCHAR(MAX),
                 optionsJson NVARCHAR(MAX),
                 difficulty NVARCHAR(50),
                 explanation NVARCHAR(MAX),
