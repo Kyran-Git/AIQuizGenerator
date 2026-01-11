@@ -220,9 +220,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<QuestionType>(
+                    isExpanded: true,
                     initialValue: aiController.selectedType,
                     decoration: const InputDecoration(
                       labelText: "Question Type",
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)
                     ),
                     items: QuestionType.values
                         .map(
@@ -230,6 +232,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: type,
                             child: Text(
                               type.name.replaceAll('_', ' ').toUpperCase(),
+                              //style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         )
