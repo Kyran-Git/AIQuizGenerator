@@ -1,55 +1,75 @@
-# For debugging purposes only: resets the database
 import pymssql
 import os
 
-# 1. Configuration
-SERVER = 'localhost'
-USER = 'sa'
-PASSWORD = os.getenv('DB_PASSWORD', 'StrongP@ssw0rd2025!')
+# CONFIGURATION
+DB_CONFIG = {
+    'server': 'localhost',
+    'user': 'sa',
+    'password': os.getenv('DB_PASSWORD', 'YourStrongPasswordHere'),
+    'database': 'AiQuizGenerator' # Connect directly to the DB
+}
 
 def reset_database():
+    conn = None
     try:
-        # Connect to 'master' so we can delete the other DB
-        conn = pymssql.connect(server=SERVER, user=USER, password=PASSWORD, database='master', autocommit=True)
+        print("🔴 CONNECTING TO DATABASE...")
+        conn = pymssql.connect(**DB_CONFIG)
+        conn.autocommit(True)
         cursor = conn.cursor()
 
-        print("⚠️  WARNING: Deleting database 'AiQuizGenerator'...")
+        print("💥 DROPPING EXISTING TABLES...")
         
-        # Force delete the database (closes existing connections first)
-        cursor.execute("""
-            IF EXISTS (SELECT * FROM sys.databases WHERE name = 'AiQuizGenerator')
-            BEGIN
-                ALTER DATABASE AiQuizGenerator SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                DROP DATABASE AiQuizGenerator;
-            END
-        """)
-        print("🗑️  Database Deleted.")
+        cursor.execute("IF OBJECT_ID('Questions', 'U') IS NOT NULL DROP TABLE Questions")
+        cursor.execute("IF OBJECT_ID('Quizzes', 'U') IS NOT NULL DROP TABLE Quizzes")
+        cursor.execute("IF OBJECT_ID('Users', 'U') IS NOT NULL DROP TABLE Users")
 
-        # Recreate it
-        cursor.execute("CREATE DATABASE AiQuizGenerator")
-        print("✨ New Database Created.")
-        
-        conn.close()
+        print("✨ CREATING NEW TABLES...")
 
-        # Connect to the NEW DB to create tables
-        conn = pymssql.connect(server=SERVER, user=USER, password=PASSWORD, database='AiQuizGenerator', autocommit=True)
-        cursor = conn.cursor()
-
-        print("🔨 Creating Users Table...")
+        # 1. USERS TABLE
         cursor.execute("""
             CREATE TABLE Users (
                 userId NVARCHAR(50) PRIMARY KEY,
-                username NVARCHAR(50) NOT NULL UNIQUE, 
-                password NVARCHAR(50) NOT NULL
+                username NVARCHAR(50) COLLATE Latin1_General_CS_AS NOT NULL UNIQUE,
+                password NVARCHAR(50) COLLATE Latin1_General_CS_AS NOT NULL
             )
         """)
-        # (Add Quizzes/Questions tables here if needed later)
 
-        print("✅ Factory Reset Complete! Database is fresh.")
-        conn.close()
+        # 2. QUIZZES TABLE (Updated with ALL new columns)
+        cursor.execute("""
+            CREATE TABLE Quizzes (
+                id NVARCHAR(50) PRIMARY KEY,
+                userId NVARCHAR(50) NOT NULL,
+                title NVARCHAR(255),
+                settingsJson NVARCHAR(MAX),
+                createdAt DATETIME DEFAULT GETDATE(),
+                FOREIGN KEY (userId) REFERENCES Users(userId)
+            )
+        """)
+
+        # 3. QUESTIONS TABLE
+        cursor.execute("""
+            CREATE TABLE Questions (
+                id NVARCHAR(50) PRIMARY KEY,
+                quizId NVARCHAR(50) NOT NULL,
+                questionText NVARCHAR(MAX),
+                correctAnswer NVARCHAR(MAX),
+                optionsJson NVARCHAR(MAX),
+                difficulty NVARCHAR(50),
+                explanation NVARCHAR(MAX),
+                FOREIGN KEY (quizId) REFERENCES Quizzes(id) ON DELETE CASCADE
+            )
+        """)
+
+        print("✅ DATABASE RESET COMPLETE! All tables are fresh.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ ERROR: {e}")
+    finally:
+        if conn: conn.close()
 
 if __name__ == "__main__":
-    reset_database()
+    confirm = input("⚠️  WARNING: This will DELETE ALL DATA. Type 'yes' to continue: ")
+    if confirm.lower() == 'yes':
+        reset_database()
+    else:
+        print("Operation cancelled.")

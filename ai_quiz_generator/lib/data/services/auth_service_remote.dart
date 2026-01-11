@@ -24,7 +24,7 @@ class RemoteAuthService implements AuthService {
       final success = response['success'] == true;
       if (success) {
         _currentUser = User(
-          userId: (response['userId'] ?? 0).toString(),
+          userId: response['userId'].toString(),
           username: response['username'] ?? '',
           password: password,
         );
@@ -43,11 +43,21 @@ class RemoteAuthService implements AuthService {
 
   @override
   Future<void> register(User user) async {
-    await ApiClient.post(
+    final response = await ApiClient.post<Map<String, dynamic>>(
       '/auth/signup',
       body: {'username': user.username, 'password': user.password},
     );
-    _currentUser = user;
+    
+    if (response['success'] == true) {
+      // Capture the actual UUID from the backend response
+      _currentUser = User(
+        userId: response['userId'].toString(),
+        username: user.username,
+        password: user.password,
+      );
+    } else {
+      throw Exception(response['message'] ?? 'Signup failed');
+    }
   }
 
   @override
@@ -83,8 +93,25 @@ class InMemoryAuthService implements AuthService {
 
   @override
   Future<void> register(User user) async {
-    _users[user.username] = user.password;
-    _currentUser = user;
+    try {
+      final response = await ApiClient.post<Map<String, dynamic>>(
+        '/auth/signup',
+        body: {'username': user.username, 'password': user.password},
+      );
+
+      if (response['success'] == true) {
+        _currentUser = User(
+          userId: response['userId'].toString(),
+          username: user.username,
+          password: user.password,
+        );
+      } else {
+        throw Exception(response['message'] ?? 'Signup failed');
+      }
+    } catch (e) {
+      print("Signup Error: $e");
+      rethrow;
+    }
   }
 
   @override

@@ -3,6 +3,8 @@ import 'package:ai_quiz_generator/controller/auth_controller.dart';
 import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
 import 'package:ai_quiz_generator/data/models/question_type.dart';
 import 'package:ai_quiz_generator/screen/auth/auth_gate.dart';
+import 'package:ai_quiz_generator/screen/history_screen.dart';
+import 'package:ai_quiz_generator/screen/analyze_screen.dart';
 import 'package:ai_quiz_generator/theme/app_theme.dart';
 import 'package:ai_quiz_generator/widgets/primary_buttons.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,17 @@ class _HomeScreenState extends State<HomeScreen> {
   final _formkey = GlobalKey<FormState>();
   AiController aiController = Get.find();
   AuthController authController = Get.find();
-
+  @override
+  void initState() {
+    super.initState();
+    // 1. Load the library immediately so the "Done" count is accurate
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (aiController.myLibrary.isEmpty) {
+        aiController.loadLibrary();
+      }
+    }
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -103,31 +115,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _quickStats() {
-    final items = [
-      _InfoPill(
-        icon: Icons.check_circle,
-        title: 'Done',
-        subtitle: 'Completed quizzes',
-      ),
-      _InfoPill(
-        icon: Icons.history,
-        title: 'History',
-        subtitle: 'Past attempts',
-      ),
-      _InfoPill(
-        icon: Icons.analytics_outlined,
-        title: 'Analyze',
-        subtitle: 'Review scores',
-      ),
-    ];
     return SizedBox(
-      height: 92,
-      child: ListView.separated(
+      height: 120,
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        itemBuilder: (_, i) => items[i],
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemCount: items.length,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        children: [
+          Obx(() => _InfoPill(
+            icon: Icons.check_circle,
+            title: 'Done',
+            // Display the dynamic count length
+            subtitle: '${aiController.myLibrary.length} Completed', 
+          )),
+          
+          const SizedBox(width: 10),
+
+          _InfoPill(
+            icon: Icons.history,
+            title: 'History',
+            subtitle: 'Past attempts',
+            onTap: () {
+              Get.to(() => const HistoryTab());
+            },
+          ),
+          
+          const SizedBox(width: 10),
+
+          _InfoPill(
+            icon: Icons.analytics_outlined,
+            title: 'Analyze',
+            subtitle: 'Review scores',
+            onTap: () {
+              if (aiController.myLibrary.isEmpty) {
+                 aiController.loadLibrary().then((_) {
+                    Get.to(() => const AnalyzeScreen());
+                 });
+              } else {
+                 Get.to(() => const AnalyzeScreen());
+              }
+            },
+          ),
+        ],
       ),
     );
   }
@@ -192,9 +220,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<QuestionType>(
+                    isExpanded: true,
                     initialValue: aiController.selectedType,
                     decoration: const InputDecoration(
                       labelText: "Question Type",
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)
                     ),
                     items: QuestionType.values
                         .map(
@@ -202,6 +232,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: type,
                             child: Text(
                               type.name.replaceAll('_', ' ').toUpperCase(),
+                              //style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         )
@@ -243,17 +276,30 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: double.infinity,
               height: 50.0,
-              child: PrimaryButton(
-                onPressed: () async {
-                  if (_formkey.currentState!.validate()) {
-                    _formkey.currentState!.save();
-                    await aiController.createQuiz();
-                  }
-                },
-                text: "Generate Quiz",
-                isRounded: true,
-                isFullWidth: true,
-              ),
+              // 1. Wrap in Obx to listen to changes
+              child: Obx(() {
+                // 2. Check the state
+                final bool isLoading = aiController.isGenerating.value;
+
+                return PrimaryButton(
+                  // 3. If loading, show "Generating..."
+                  text: isLoading ? "Generating Quiz..." : "Generate Quiz",
+                  
+                  // 4. If loading, disable the button (null logic)
+                  onPressed: isLoading 
+                      ? null // This usually greys out the button
+                      : () async {
+                          if (_formkey.currentState!.validate()) {
+                            _formkey.currentState!.save();
+                            // Close keyboard
+                            FocusScope.of(context).unfocus(); 
+                            await aiController.createQuiz();
+                          }
+                        },
+                  isRounded: true,
+                  isFullWidth: true,
+                );
+              }),
             ),
             const SizedBox(height: 8.0),
             Obx(() {
@@ -291,49 +337,73 @@ class _InfoPill extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
   const _InfoPill({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      decoration: BoxDecoration(
-        color: AppTheme.primaryApp,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 160,
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryApp.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            padding: const EdgeInsets.all(8),
-            child: Icon(icon, color: AppTheme.primaryApp, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryApp.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Icon(icon, color: AppTheme.primaryApp),
+            ),
+            const SizedBox(width: 12.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C3E50),
+                    ),
                   ),
-                ),
-                Text(subtitle, style: const TextStyle(color: Colors.white70)),
-              ],
+                  const SizedBox(height: 4.0),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF5C6B7A),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

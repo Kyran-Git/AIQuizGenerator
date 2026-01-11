@@ -4,8 +4,7 @@ import 'package:ai_quiz_generator/data/models/quiz_question.dart';
 import 'package:flutter/material.dart';
 import 'package:ai_quiz_generator/widgets/quiz_radio_group.dart';
 import 'package:ai_quiz_generator/theme/app_theme.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_instance/src/extension_instance.dart';
+import 'package:get/get.dart';
 
 class ExamScreen extends StatefulWidget {
   const ExamScreen({super.key});
@@ -20,6 +19,16 @@ class _ExamScreenState extends State<ExamScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // App Bar for Back Navigation
+      appBar: AppBar(
+        title: const Text(
+          'Exam Mode',
+          style: TextStyle(color: Color(0xFF2C3E50), fontWeight: FontWeight.w700),
+        ),
+        backgroundColor: const Color(0xFFE6F2FF),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF2C3E50)),
+      ),
       body: SafeArea(
         child: Container(
           decoration: const BoxDecoration(
@@ -29,28 +38,7 @@ class _ExamScreenState extends State<ExamScreen> {
               colors: [Color(0xFFE6F2FF), Colors.white],
             ),
           ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Row(
-                  children: const [
-                    Expanded(
-                      child: Text(
-                        'Exam mode',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2C3E50),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(child: bodyContainer()),
-            ],
-          ),
+          child: bodyContainer(),
         ),
       ),
     );
@@ -64,8 +52,34 @@ class _ExamScreenState extends State<ExamScreen> {
       padding: EdgeInsets.all(8.0),
       child: ListView.builder(
         shrinkWrap: true,
-        itemCount: aiController.questions.length,
+        itemCount: aiController.questions.length + 1,
         itemBuilder: (context, index) {
+          if (index == aiController.questions.length) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+              child: SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryApp,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    // 1. Save the quiz to the library
+                    await aiController.saveCurrentQuiz();
+                    
+                    // 2. Close the exam screen
+                    Get.back();
+                  },
+                  child: const Text("Finish & Save Quiz", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            );
+          }
+
           return QuestionCard(
             question: aiController.questions[index],
             type: questionType,
@@ -86,13 +100,17 @@ class QuestionCard extends StatefulWidget {
   State<QuestionCard> createState() => _QuestionCardState();
 }
 
-class _QuestionCardState extends State<QuestionCard> {
+class _QuestionCardState extends State<QuestionCard> with AutomaticKeepAliveClientMixin{
+  @override
+  bool get wantKeepAlive => true;
   String? selectedOption;
   String shortAnswer = '';
   bool? isCorrect;
+  bool answered = false;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
       color: Colors.white,
@@ -181,9 +199,11 @@ class _QuestionCardState extends State<QuestionCard> {
       options: widget.question.options,
       value: selectedOption,
       onChanged: (val) {
-        setState(() {
+          if (answered) return;
+          setState(() {
           selectedOption = val;
           isCorrect = val == widget.question.correctAnswer;
+          answered = true;
         });
       },
     );
@@ -194,6 +214,7 @@ class _QuestionCardState extends State<QuestionCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
+          enabled: !answered,
           decoration: const InputDecoration(
             labelText: 'Your answer',
             border: OutlineInputBorder(),
@@ -215,7 +236,9 @@ class _QuestionCardState extends State<QuestionCard> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              onPressed: () {
+              onPressed: answered
+                  ? null
+                  : () {
                 setState(() {
                   isCorrect =
                       shortAnswer.trim().toLowerCase() ==

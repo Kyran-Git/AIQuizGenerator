@@ -7,7 +7,7 @@ DB_CONFIG = {
     'server': 'localhost',
     'user': 'sa',
     'password': os.getenv('DB_PASSWORD', 'YourStrongPasswordHere'),
-    'database': 'master' # Start with master to create the new DB
+    'database': 'master'
 }
 
 def setup():
@@ -33,44 +33,47 @@ def setup():
         
         # Table for User Class
         cursor.execute("""
-            IF OBJECT_ID('Users', 'U') IS NULL
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' AND xtype='U')
             CREATE TABLE Users (
                 userId NVARCHAR(50) PRIMARY KEY,
-                username NVARCHAR(50) NOT NULL,
-                password NVARCHAR(50) NOT NULL
+                username NVARCHAR(50) COLLATE Latin1_General_CS_AS NOT NULL UNIQUE,
+                password NVARCHAR(50)  COLLATE Latin1_General_CS_AS NOT NULL
             )
         """)
 
-        # Table for Quiz Class (cite: image_95ae13.png)
+        # Table for Quiz Class
         cursor.execute("""
-            IF OBJECT_ID('Quizzes', 'U') IS NULL
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Quizzes' AND xtype='U')
             CREATE TABLE Quizzes (
                 id NVARCHAR(50) PRIMARY KEY,
                 userId NVARCHAR(50) FOREIGN KEY REFERENCES Users(userId),
                 title NVARCHAR(255),
-                timestamp DATETIME DEFAULT GETDATE()
+                settingsJson NVARCHAR(MAX),
+                createdAt DATETIME DEFAULT GETDATE(),
+                FOREIGN KEY (userId) REFERENCES Users(userId)
             )
         """)
 
-        # Table for Question Class (cite: image_95add3.png)
+        # Table for Question Class
         cursor.execute("""
-            IF OBJECT_ID('Questions', 'U') IS NULL
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Questions' AND xtype='U')
             CREATE TABLE Questions (
                 id NVARCHAR(50) PRIMARY KEY,
                 quizId NVARCHAR(50) FOREIGN KEY REFERENCES Quizzes(id),
                 questionText NVARCHAR(MAX),
-                correctAnswer NVARCHAR(255),
+                correctAnswer NVARCHAR(MAX),
                 optionsJson NVARCHAR(MAX),
                 difficulty NVARCHAR(50),
-                explanation NVARCHAR(MAX)
+                explanation NVARCHAR(MAX),
+                FOREIGN KEY (quizId) REFERENCES Quizzes(id) ON DELETE CASCADE
             )
         """)
 
-        print("✅ Database and Tables created successfully!")
+        print("Database and Tables created successfully!")
         conn.close()
 
     except Exception as e:
-        print(f"❌ Setup failed: {e}")
+        print(f"Setup failed: {e}")
 
 if __name__ == "__main__":
     setup()

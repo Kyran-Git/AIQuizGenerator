@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import pymssql
 import os
+import json
 from typing import List, Optional
 
 app = FastAPI(title="AI Quiz Generator API")
@@ -15,7 +16,7 @@ DB_CONFIG = {
     "database": "AiQuizGenerator"
 }
 
-# --- Data Models (Matching your Flutter & SDD) ---
+# Data Models
 class UserLogin(BaseModel):
     username: str
     password: str
@@ -26,14 +27,20 @@ class QuestionModel(BaseModel):
     correctAnswer: str
     options: List[str]
     difficulty: str
-    explanation: Optional[str] = None
+    explanation: Optional[str] = ""
+
+class QuizSettingsModel(BaseModel):
+    sourceText: str
+    numOfQuestions: int
+    difficulty: str
+    type: str
 
 class QuizModel(BaseModel):
     id: str
     userId: str  # Matches the new Flutter model
     title: str
     questions: List[QuestionModel]
-    settings: dict # Receives the settings as a JSON object
+    settings: QuizSettingsModel # Receives the settings as a JSON object
 
 # --- Database Helper ---
 def get_db_connection():
@@ -76,7 +83,7 @@ def signup(user: UserLogin):
         if cursor.fetchone():
             return {"success": False, "message": "Username taken"}
 
-        # Generate ID (Simplified)
+        # Generate ID
         import uuid
         user_id = str(uuid.uuid4())
         
@@ -96,13 +103,14 @@ def signup(user: UserLogin):
 def save_quiz(quiz: QuizModel):
     conn = get_db_connection()
     cursor = conn.cursor()
-    import json
     
     try:
         # 1. Save Quiz Metadata (including the new settingsJson)
         cursor.execute(
-            "INSERT INTO Quizzes (id, title, userId, settingsJson) VALUES (%s, %s, %s, %s)",
-            (quiz.id, quiz.title, quiz.userId, json.dumps(quiz.settings))
+            "INSERT INTO Quizzes "
+            "(id, title, userId, createdAt, settingsJson) " \
+            "VALUES (%s, %s, %s, GETDATE(), %s)",
+            (quiz.id, quiz.title, quiz.userId, json.dumps(quiz.settings.dict()))
         )
         
         # 2. Save Questions
@@ -120,5 +128,57 @@ def save_quiz(quiz: QuizModel):
         conn.rollback()
         print(f"Error saving quiz: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.get("/quizzes/list/{user_id}")
+def get_quizzes(user_id: str):
+    conn = get_db_connection()
+    cursor = conn.cursor(as_dict=True)
+    
+    try:
+        # 1. Get all Quizzes for this User
+        cursor.execute("SELECT * FROM Quizzes WHERE userId=%s ORDER BY createdAt DESC", (user_id,))
+        quizzes_rows = cursor.fetchall()
+        
+        results = []
+        
+        for quiz_row in quizzes_rows:
+            # 2. Get Questions for THIS specific quiz
+            cursor.execute("SELECT * FROM Questions WHERE quizId=%s", (quiz_row['id'],))
+            questions_rows = cursor.fetchall()
+            
+            # 3. Process Questions (Convert JSON string back to List)
+            parsed_questions = []
+            for q in questions_rows:
+                parsed_questions.append({
+                    "id": q['id'],
+                    "questionText": q['questionText'],
+                    "correctAnswer": q['correctAnswer'],
+                    "options": json.loads(q['optionsJson']), 
+                    "difficulty": q['difficulty'],
+                    "explanation": q['explanation'] or ""
+                })
+
+            # 4. Process Settings (Convert JSON string back to Dict)
+            settings_dict = {}
+            if quiz_row['settingsJson']:
+                settings_dict = json.loads(quiz_row['settingsJson'])
+
+            # 5. Assemble the final Quiz Object
+            results.append({
+                "id": quiz_row['id'],
+                "userId": quiz_row['userId'],
+                "title": quiz_row['title'],
+                "questions": parsed_questions,
+                "settings": settings_dict
+            })
+
+        return results
+
+    except Exception as e:
+        print(f"Error fetching quizzes: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
     finally:
         conn.close()

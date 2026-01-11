@@ -26,12 +26,7 @@ class AuthController extends GetxController {
     error.value = null;
     final valid = await authService.validateCredentials(username, password);
     if (valid) {
-      final user = User(
-        userId: username,
-        username: username,
-        password: password,
-      );
-      await authService.manageSession(user);
+      final user = await authService.currentUser();
       currentUser.value = user;
     } else {
       error.value = 'Invalid username or password';
@@ -43,18 +38,18 @@ class AuthController extends GetxController {
   Future<bool> signUp(String username, String password) async {
     isLoading.value = true;
     error.value = null;
-    final available = await authService.checkUsernameAvailability(username);
-    if (!available) {
-      error.value = 'Username is already taken';
+    try {
+      final user = User(userId: '', username: username, password: password);
+      await authService.register(user);
+      final registeredUser = await authService.currentUser();
+      currentUser.value = registeredUser;
+      isLoading.value = false;
+      return true;
+    } catch (e) {
+      error.value = 'Signup failed';
       isLoading.value = false;
       return false;
     }
-    final user = User(userId: username, username: username, password: password);
-    await authService.register(user);
-    await authService.manageSession(user);
-    currentUser.value = user;
-    isLoading.value = false;
-    return true;
   }
 
   Future<void> logout() async {

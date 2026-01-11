@@ -1,0 +1,70 @@
+Prerequisite Downloads:
+Docker Desktop (Microsoft Store)
+2. Python (Microsoft Store)
+3. Microsoft ODBC Driver (https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver17)
+4. VS Code (Purple and Blue, on the purple one, remember to check the box for "Desktop development with C++" under Workloads tab)
+5. Android Studio (enable Flutter SDK by ticking 'Android SDK Command-line Tools' under SDK Tools tab in SDK Manager, only if testing Android environment)
+
+Setup:
+Note: Prepare several terminals, and preferably run terminals outside of Visual Studio Code
+
+# 1
+cd C:\Projects\AIQuizGenerator\backend (To wherever your directory is, into backend)
+
+
+# 2. Create virtual environment
+python -m venv venv
+
+
+# 3. Activate it
+.\venv\Scripts\activate
+
+
+# 4. Install dependencies
+pip install fastapi uvicorn pymssql pydantic requests
+
+
+# 5. Setup flutter frontend
+cd C:\Projects\AIQuizGenerator
+flutter pub get
+
+To check setup readiness:
+flutter doctor
+
+
+# 6. Database Init
+Open up Docker Desktop, make sure the left bottom corner indicator is green (Engine running)
+
+Start the Container, run this single command in your terminal (PowerShell or Bash) to download and start the server.
+
+User: sa (System Administrator)
+
+Password: MyStrongPassword123! (Or any preferential password, must be complex to satisfy SQL Server requirements)
+
+Open up powershell / cmd (admin), run this:
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=StrongP@ssw0rd2025!" -p 1433:1433 --name sql_server -d mcr.microsoft.com/mssql/server:2022-latest
+
+To verify connectivity, run this command:
+docker ps
+
+
+# 7. Create database
+Before running any python files, we need to specify the password we previously set in terminal
+The password will only be remembered by the terminal that you ran so take Note
+The command:
+(in CMD) set DB_PASSWORD=StrongP@ssw0rd2025!
+(in Powershell) $env:DB_PASSWORD="StrongP@ssw0rd2025!"
+Back to the first terminal, create database by running command:
+python setup_db.py (or reset_db.py, if existing database is corrupted and wanted to repair)
+
+
+# 8. Starting up the server
+On the same terminal, inside backend (make sure in venv env, the indicator is green)
+Run the command
+uvicorn main:app --reload
+
+
+# 9. Run the app
+Open up another terminal, cd to ai_quiz_generator
+Run the command
+flutter run
