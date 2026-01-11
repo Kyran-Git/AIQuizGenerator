@@ -18,11 +18,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   late AuthController authController;
+  final FocusNode _usernameFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
     authController = Get.find<AuthController>();
+  }
+
+  void _submitLogin() async {
+    if (_formKey.currentState!.validate()) {
+      final success = await authController.login(
+        _usernameController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (success) {
+        Get.offAll(() => const AuthGate());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _usernameFocus.dispose();
+    _passwordFocus.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,8 +101,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // USERNAME FIELD
                               TextFormField(
                                 controller: _usernameController,
+                                focusNode: _usernameFocus,
                                 decoration: const InputDecoration(
                                   labelText: 'Email or Username',
                                   prefixIcon: Icon(Icons.person_outline),
@@ -87,10 +112,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 validator: (val) => (val == null || val.isEmpty)
                                     ? 'Username is required'
                                     : null,
+                                onFieldSubmitted: (_){
+                                  FocusScope.of(context).requestFocus(_passwordFocus);
+                                },
                               ),
                               const SizedBox(height: 12.0),
+                              // PASSWORD FIELD
                               TextFormField(
                                 controller: _passwordController,
+                                focusNode: _passwordFocus,
                                 decoration: const InputDecoration(
                                   labelText: 'Password',
                                   prefixIcon: Icon(Icons.lock_outline),
@@ -99,6 +129,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 validator: (val) => (val == null || val.isEmpty)
                                     ? 'Password is required'
                                     : null,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) => _submitLogin(),
                               ),
                               const SizedBox(height: 8.0),
                               Align(
@@ -115,26 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   width: double.infinity,
                                   height: 50,
                                   child: PrimaryButton(
-                                    onPressed: loading
+                                    onPressed: authController.isLoading.value
                                         ? null
-                                        : () async {
-                                            if (_formKey.currentState!
-                                                .validate()) {
-                                              final success =
-                                                  await authController.login(
-                                                    _usernameController.text
-                                                        .trim(),
-                                                    _passwordController.text
-                                                        .trim(),
-                                                  );
-                                              if (success) {
-                                                Get.offAll(
-                                                  () => const AuthGate(),
-                                                );
-                                              }
-                                            }
-                                          },
-                                    text: loading ? 'Logging in...' : 'Login',
+                                        : _submitLogin,
+                                    text: authController.isLoading.value ? 'Logging in...' : 'Login',
                                     isRounded: true,
                                     isFullWidth: true,
                                   ),

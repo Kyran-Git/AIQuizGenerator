@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ai_quiz_generator/controller/ai_controller.dart';
+import 'package:ai_quiz_generator/screen/pdf_preview_screen.dart'; // Adjust path based on where you saved the file
 // import 'package:ai_quiz_generator/screen/exam_screen.dart';
 
 class HistoryTab extends StatelessWidget {
@@ -59,7 +60,7 @@ class HistoryTab extends StatelessWidget {
             itemBuilder: (context, index) {
               final quiz = controller.myLibrary[index];
               return Card(
-                elevation: 2, // Slightly lower elevation for a cleaner look
+                elevation: 2,
                 color: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
@@ -84,11 +85,28 @@ class HistoryTab extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text("${quiz.questions.length} Questions • ${quiz.settings.difficulty}"),
                   ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Retry',
+                        icon: const Icon(Icons.refresh, color: Color(0xFF4169E1)),
+                        onPressed: () { controller.retryQuiz(quiz); },
+                      ),
+                      IconButton(
+                        tooltip: 'Download',
+                        icon: const Icon(Icons.download, color: Color(0xFF4169E1)),
+                        onPressed: () {
+                          Get.to(() => PdfPreviewScreen(quiz: quiz));
+                        },
+                      ),
+                    ],
+                  ),
+
                   onTap: () {
-                    // Navigate to details
-                    // controller.currentQuiz = quiz;
-                    // Get.to(() => const ExamScreen());
+                    controller.retryQuiz(quiz);
                   },
+
                 ),
               );
             },

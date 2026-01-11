@@ -38,9 +38,11 @@ class AiController extends GetxController {
   // Retry status for Gemini backoff
   final RxBool isRetrying = false.obs;
   final RxInt retryAttempt = 0.obs; // 1..N
+  final RxBool isGenerating = false.obs;
 
   Future<void> createQuiz() async {
     try {
+      isGenerating.value = true;
       log('AiController :: createQuiz()');
 
       //get auth controllers
@@ -83,6 +85,8 @@ class AiController extends GetxController {
       log('AiController :: createQuiz() :: Error:$e');
       Get.snackbar("Error", "Failed to generate quiz. Please try again.");
       isRetrying.value = false;
+    } finally {
+      isGenerating.value = false;
     }
   }
 
@@ -137,10 +141,32 @@ class AiController extends GetxController {
     }
     try {
       await quizRepo.saveQuiz(currentQuiz!);
+      myLibrary.add(currentQuiz!);
       log('AiController :: saveCurrentQuiz() :: Quiz saved successfully.');
     } catch (e) {
       log('AiController :: saveCurrentQuiz() :: Error:$e');
       Get.snackbar("Error", "Failed to save quiz.");
     }
+  }
+
+  void retryQuiz(Quiz quiz) {
+    // 1. Create a deep copy of questions with 'userAnswer' wiped to null.
+    final List<Question> cleanQuestions = quiz.questions.map((q) {
+      return Question(
+        id: q.id,
+        questionText: q.questionText,
+        options: List<String>.from(q.options), // Copy the list
+        correctAnswer: q.correctAnswer,
+        difficulty: q.difficulty,
+        explanation: q.explanation,
+      );
+    }).toList();
+
+    // 2. Set as the current active quiz
+    currentQuiz = quiz;
+    questions = cleanQuestions; // Use the clean list
+
+    // 3. Navigate to Exam
+    Get.to(() => const ExamScreen());
   }
 }

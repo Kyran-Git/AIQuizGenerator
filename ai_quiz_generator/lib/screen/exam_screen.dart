@@ -106,6 +106,7 @@ class _QuestionCardState extends State<QuestionCard> with AutomaticKeepAliveClie
   String? selectedOption;
   String shortAnswer = '';
   bool? isCorrect;
+  bool answered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -198,9 +199,11 @@ class _QuestionCardState extends State<QuestionCard> with AutomaticKeepAliveClie
       options: widget.question.options,
       value: selectedOption,
       onChanged: (val) {
-        setState(() {
+          if (answered) return;
+          setState(() {
           selectedOption = val;
           isCorrect = val == widget.question.correctAnswer;
+          answered = true;
         });
       },
     );
@@ -211,6 +214,7 @@ class _QuestionCardState extends State<QuestionCard> with AutomaticKeepAliveClie
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
+          enabled: !answered,
           decoration: const InputDecoration(
             labelText: 'Your answer',
             border: OutlineInputBorder(),
@@ -232,7 +236,9 @@ class _QuestionCardState extends State<QuestionCard> with AutomaticKeepAliveClie
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              onPressed: () {
+              onPressed: answered
+                  ? null
+                  : () {
                 setState(() {
                   isCorrect =
                       shortAnswer.trim().toLowerCase() ==
