@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pymssql
 import os
@@ -7,6 +8,14 @@ import re
 from typing import List, Optional
 
 app = FastAPI(title="AI Quiz Generator API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (for development)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (POST, GET, OPTIONS, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 db_password = os.getenv('DB_PASSWORD', 'StrongP@ssw0rd2025!')
 
