@@ -25,7 +25,7 @@ pip install fastapi uvicorn pymssql pydantic requests
 
 
 # 5. Setup flutter frontend
-cd C:\Projects\AIQuizGenerator
+cd C:\Projects\AIQuizGenerator\ai_quiz_generator
 flutter pub get
 
 To check setup readiness:

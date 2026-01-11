@@ -33,6 +33,11 @@ Notes:
   - iOS/macOS: Xcode, CocoaPods, a simulator or device (macOS only)
   - Web: Chrome (default) or another supported browser
   - Desktop: enable the target with Flutter config if needed
+- Windows Developer Mode
+  - Go to Settings
+  - Go to System
+  - Go to Advanced and scroll down until Developer mode
+  - Enable Developer mode
 
 Optional enables (run once on your machine):
 
