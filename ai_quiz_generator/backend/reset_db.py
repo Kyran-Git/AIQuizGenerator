@@ -29,8 +29,8 @@ def reset_database():
         cursor.execute("""
             CREATE TABLE Users (
                 userId NVARCHAR(50) PRIMARY KEY,
-                username NVARCHAR(50) NOT NULL UNIQUE,
-                password NVARCHAR(50) NOT NULL
+                username NVARCHAR(50) COLLATE Latin1_General_CS_AS NOT NULL UNIQUE,
+                password NVARCHAR(50) COLLATE Latin1_General_CS_AS NOT NULL
             )
         """)
 
