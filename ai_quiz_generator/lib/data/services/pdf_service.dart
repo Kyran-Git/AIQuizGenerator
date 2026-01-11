@@ -42,20 +42,24 @@ class LocalPdfService implements PdfService {
                     pw.SizedBox(height: 10),
 
                     if (isRevision)
-                      // REVISION MODE: Only Show Correct Answer
-                      pw.Container(
-                        padding: const pw.EdgeInsets.all(6),
-                        decoration: const pw.BoxDecoration(color: PdfColors.green50),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(left: 15),
                         child: pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start, // Align to top
                           children: [
                             pw.Text("Correct Answer: ", 
-                                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                            pw.Text(q.correctAnswer, style: const pw.TextStyle(fontSize: 11)),
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold, 
+                                    fontSize: 11,
+                                    color: PdfColors.grey900)),
+                            pw.Expanded(
+                              child: pw.Text(q.correctAnswer, 
+                                  style: const pw.TextStyle(fontSize: 11)),
+                            ),
                           ],
                         ),
                       )
                     else
-                      // EXAM MODE: Show Options (A, B, C, D)
                       ...q.options.asMap().entries.map((optEntry) {
                         final label = String.fromCharCode(65 + optEntry.key);
                         return pw.Padding(
