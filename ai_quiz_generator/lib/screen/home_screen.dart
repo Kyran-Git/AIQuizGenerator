@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const SizedBox(height: 4),
                 const Text(
-                  'welcome back',
+                  'Welcome Back',
                   style: TextStyle(fontSize: 16, color: Color(0xFF5C6B7A)),
                 ),
                 Text(
