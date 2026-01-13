@@ -5,13 +5,13 @@ import 'package:ai_quiz_generator/data/models/quiz_question.dart';
 import 'package:ai_quiz_generator/data/models/quiz_settings.dart';
 import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
 import 'package:ai_quiz_generator/data/models/question_type.dart';
-import 'package:ai_quiz_generator/data/models/user.dart';
-import 'package:ai_quiz_generator/data/services/quiz_generator_service.dart';
+import 'package:ai_quiz_generator/data/services/mock_quiz_generator_service.dart';
+import 'package:ai_quiz_generator/data/services/quiz_generator_service.dart'  hide MockQuizGeneratorService;
 import 'package:ai_quiz_generator/screen/exam_screen.dart';
 import 'package:ai_quiz_generator/controller/auth_controller.dart';
 import 'package:ai_quiz_generator/data/services/quiz_repository.dart';
 import 'package:ai_quiz_generator/data/services/quiz_repository_remote.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AiController extends GetxController {
@@ -40,10 +40,25 @@ class AiController extends GetxController {
   final RxInt retryAttempt = 0.obs; // 1..N
   final RxBool isGenerating = false.obs;
 
+  // Mock Service for offline fallback
+  final MockQuizGeneratorService _mockService = MockQuizGeneratorService();
+  
   Future<void> createQuiz() async {
     try {
       isGenerating.value = true;
       log('AiController :: createQuiz()');
+
+      // Check for existing quiz in library first
+      final existingQuiz = myLibrary.firstWhereOrNull((quiz) =>
+          quiz.title.toLowerCase().contains(createQuizExplanation.text.trim().toLowerCase())
+      );
+
+      if (existingQuiz != null) {
+        Get.snackbar("Offline Mode", "Found '${existingQuiz.title}' in history. Loading it...",
+            backgroundColor: Colors.green, colorText: Colors.white);
+        retryQuiz(existingQuiz); // Reuse existing logic
+        return; // Exit function early
+      }
 
       //get auth controllers
       final currentUser = _authController.currentUser.value;
@@ -54,13 +69,29 @@ class AiController extends GetxController {
         difficulty: selectedDifficulty,
         type: selectedType,
       );
-      final generatedQuestions = await quizGeneratorService.generateQuiz(
-        settings,
-        onRetry: (attempt, error) {
-          isRetrying.value = true;
-          retryAttempt.value = attempt;
-        },
-      );
+
+      List<Question> generatedQuestions;
+
+      // Try Online, Fallback to Mock on failure
+      try {
+        // Attempt Real API
+        generatedQuestions = await quizGeneratorService.generateQuiz(
+          settings,
+          onRetry: (attempt, error) {
+            isRetrying.value = true;
+            retryAttempt.value = attempt;
+          },
+        );
+      } catch (apiError) {
+        log('AiController :: Online API Failed: $apiError. Switching to Mock Service...');
+        
+        // Show offline warning
+        Get.snackbar("Offline Mode", "Network unavailable. Generating mock quiz...",
+            backgroundColor: Colors.orange, colorText: Colors.white);
+
+        // Fallback: Generate Mock Questions
+        generatedQuestions = (await _mockService.generateQuiz(settings)).cast<Question>();
+      }
 
       // 3. Handle Guest ID safely
       // If currentUser is null, use '' (Guest). 
@@ -78,6 +109,26 @@ class AiController extends GetxController {
       );
 
       questions = generatedQuestions;
+
+      try {
+      // Try to save to the online database
+      await quizRepo.saveQuiz(currentQuiz!);
+      
+      // If successful, refresh the library
+      await loadLibrary(); 
+    } catch (e) {
+      // If we are OFFLINE, this will fail. We catch the error so the app doesn't crash.
+      print("Offline Warning: Could not save quiz to server. ($e)");
+      
+      Get.snackbar(
+        "Offline Mode", 
+        "Quiz ready! (Not saved to online history)", 
+        backgroundColor: Colors.orange, 
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
+      
       Get.to(() => const ExamScreen());
       isRetrying.value = false;
       retryAttempt.value = 0;
