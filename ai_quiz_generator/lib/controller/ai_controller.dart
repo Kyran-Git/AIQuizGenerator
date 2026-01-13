@@ -48,18 +48,6 @@ class AiController extends GetxController {
       isGenerating.value = true;
       log('AiController :: createQuiz()');
 
-      // Check for existing quiz in library first
-      final existingQuiz = myLibrary.firstWhereOrNull((quiz) =>
-          quiz.title.toLowerCase().contains(createQuizExplanation.text.trim().toLowerCase())
-      );
-
-      if (existingQuiz != null) {
-        Get.snackbar("Offline Mode", "Found '${existingQuiz.title}' in history. Loading it...",
-            backgroundColor: Colors.green, colorText: Colors.white);
-        retryQuiz(existingQuiz); // Reuse existing logic
-        return; // Exit function early
-      }
-
       //get auth controllers
       final currentUser = _authController.currentUser.value;
 
@@ -84,7 +72,18 @@ class AiController extends GetxController {
         );
       } catch (apiError) {
         log('AiController :: Online API Failed: $apiError. Switching to Mock Service...');
-        
+                
+        // Check for existing quiz in library first
+        final existingQuiz = myLibrary.firstWhereOrNull((quiz) =>
+            quiz.title.toLowerCase().contains(createQuizExplanation.text.trim().toLowerCase())
+        );
+
+        if (existingQuiz != null) {
+          Get.snackbar("Offline Mode", "Found '${existingQuiz.title}' in history. Loading it...",
+              backgroundColor: Colors.green, colorText: Colors.white);
+          retryQuiz(existingQuiz); // Reuse existing logic
+          return; // Exit function early
+        }
         // Show offline warning
         Get.snackbar("Offline Mode", "Network unavailable. Generating mock quiz...",
             backgroundColor: Colors.orange, colorText: Colors.white);
@@ -109,26 +108,6 @@ class AiController extends GetxController {
       );
 
       questions = generatedQuestions;
-
-      try {
-      // Try to save to the online database
-      await quizRepo.saveQuiz(currentQuiz!);
-      
-      // If successful, refresh the library
-      await loadLibrary(); 
-    } catch (e) {
-      // If we are OFFLINE, this will fail. We catch the error so the app doesn't crash.
-      print("Offline Warning: Could not save quiz to server. ($e)");
-      
-      Get.snackbar(
-        "Offline Mode", 
-        "Quiz ready! (Not saved to online history)", 
-        backgroundColor: Colors.orange, 
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    }
-      
       Get.to(() => const ExamScreen());
       isRetrying.value = false;
       retryAttempt.value = 0;
