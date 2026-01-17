@@ -1,3 +1,5 @@
+// ignore_for_file: dead_code
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -5,19 +7,23 @@ import 'package:http/http.dart' as http;
 
 class ApiClient {
   static String get baseUrl {
-    // 1. Check if running on Web
-    if (kIsWeb) {
+    bool useHostPC = true;
+
+    const String hostIp = "192.168.100.31";
+
+    if (useHostPC) {
+      return "http://$hostIp:8000";
+    } else if (kIsWeb) {
+      // 1. Check if running on Web
+      return "http://localhost:8000";
+    } else if (Platform.isAndroid) {
+      // 2. Check if running on Android (Physical or Emulator)
+      // 10.0.2.2 is ONLY for the Android Emulator running on the SAME PC
+      return "http://10.0.2.2:8000";
+    } else {
+      // 3. Fallback for Windows/Linux/macOS running locally
       return "http://localhost:8000";
     }
-
-    // 2. Check if running on Android (Physical or Emulator)
-    if (Platform.isAndroid) {
-      // 10.0.2.2 is the special alias for the host machine's 'localhost'
-      return "http://10.0.2.2:8000";
-    }
-
-    // 3. Check for Desktop (Windows/Linux/macOS) or iOS Emulator
-    return "http://localhost:8000";
   }
 
   static Future<T> get<T>(

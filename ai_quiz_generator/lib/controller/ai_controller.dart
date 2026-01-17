@@ -5,13 +5,13 @@ import 'package:ai_quiz_generator/data/models/quiz_question.dart';
 import 'package:ai_quiz_generator/data/models/quiz_settings.dart';
 import 'package:ai_quiz_generator/data/models/difficulty_level.dart';
 import 'package:ai_quiz_generator/data/models/question_type.dart';
-import 'package:ai_quiz_generator/data/models/user.dart';
-import 'package:ai_quiz_generator/data/services/quiz_generator_service.dart';
+import 'package:ai_quiz_generator/data/services/mock_quiz_generator_service.dart';
+import 'package:ai_quiz_generator/data/services/quiz_generator_service.dart'  hide MockQuizGeneratorService;
 import 'package:ai_quiz_generator/screen/exam_screen.dart';
 import 'package:ai_quiz_generator/controller/auth_controller.dart';
 import 'package:ai_quiz_generator/data/services/quiz_repository.dart';
 import 'package:ai_quiz_generator/data/services/quiz_repository_remote.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AiController extends GetxController {
@@ -40,6 +40,9 @@ class AiController extends GetxController {
   final RxInt retryAttempt = 0.obs; // 1..N
   final RxBool isGenerating = false.obs;
 
+  // Mock Service for offline fallback
+  final MockQuizGeneratorService _mockService = MockQuizGeneratorService();
+  
   Future<void> createQuiz() async {
     try {
       isGenerating.value = true;
@@ -54,13 +57,40 @@ class AiController extends GetxController {
         difficulty: selectedDifficulty,
         type: selectedType,
       );
-      final generatedQuestions = await quizGeneratorService.generateQuiz(
-        settings,
-        onRetry: (attempt, error) {
-          isRetrying.value = true;
-          retryAttempt.value = attempt;
-        },
-      );
+
+      List<Question> generatedQuestions;
+
+      // Try Online, Fallback to Mock on failure
+      try {
+        // Attempt Real API
+        generatedQuestions = await quizGeneratorService.generateQuiz(
+          settings,
+          onRetry: (attempt, error) {
+            isRetrying.value = true;
+            retryAttempt.value = attempt;
+          },
+        );
+      } catch (apiError) {
+        log('AiController :: Online API Failed: $apiError. Switching to Mock Service...');
+                
+        // Check for existing quiz in library first
+        final existingQuiz = myLibrary.firstWhereOrNull((quiz) =>
+            quiz.title.toLowerCase().contains(createQuizExplanation.text.trim().toLowerCase())
+        );
+
+        if (existingQuiz != null) {
+          Get.snackbar("Offline Mode", "Found '${existingQuiz.title}' in history. Loading it...",
+              backgroundColor: Colors.green, colorText: Colors.white);
+          retryQuiz(existingQuiz); // Reuse existing logic
+          return; // Exit function early
+        }
+        // Show offline warning
+        Get.snackbar("Offline Mode", "Network unavailable. Generating mock quiz...",
+            backgroundColor: Colors.orange, colorText: Colors.white);
+
+        // Fallback: Generate Mock Questions
+        generatedQuestions = (await _mockService.generateQuiz(settings)).cast<Question>();
+      }
 
       // 3. Handle Guest ID safely
       // If currentUser is null, use '' (Guest). 
@@ -150,23 +180,51 @@ class AiController extends GetxController {
   }
 
   void retryQuiz(Quiz quiz) {
+    String newQuizId = DateTime.now().millisecondsSinceEpoch.toString();
     // 1. Create a deep copy of questions with 'userAnswer' wiped to null.
-    final List<Question> cleanQuestions = quiz.questions.map((q) {
+    final List<Question> cleanQuestions = quiz.questions.asMap().entries.map((entry) {
+      int index = entry.key;
+      Question q = entry.value;
+
       return Question(
-        id: q.id,
+        id: "${newQuizId}_$index", 
         questionText: q.questionText,
-        options: List<String>.from(q.options), // Copy the list
+        options: List<String>.from(q.options),
         correctAnswer: q.correctAnswer,
         difficulty: q.difficulty,
         explanation: q.explanation,
       );
     }).toList();
 
+    // 3. Create the NEW Quiz Object
+    Quiz newQuizAttempt = Quiz(
+      id: newQuizId,
+      userId: quiz.userId,    
+      settings: quiz.settings,
+      questions: cleanQuestions,
+      title: quiz.title,
+    );
+
     // 2. Set as the current active quiz
-    currentQuiz = quiz;
+    currentQuiz = newQuizAttempt;
     questions = cleanQuestions; // Use the clean list
 
     // 3. Navigate to Exam
     Get.to(() => const ExamScreen());
+  }
+
+  void updateQuestion(int index, {String? text, String? answer, List<String>? options}) {
+    // 1. Get the existing question at that position
+    final oldQ = questions[index];
+    
+    // 2. Replace it with a new Question object using the updated values
+    questions[index] = Question(
+      id: oldQ.id,
+      questionText: text ?? oldQ.questionText,
+      options: options ?? List<String>.from(oldQ.options),
+      correctAnswer: answer ?? oldQ.correctAnswer,
+      explanation: oldQ.explanation,
+      difficulty: oldQ.difficulty,
+    );
   }
 }
