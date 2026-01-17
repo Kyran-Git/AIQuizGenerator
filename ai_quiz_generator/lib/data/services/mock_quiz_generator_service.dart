@@ -42,7 +42,7 @@ class MockQuizGeneratorService {
     }
     
     // Fill if not enough questions (duplicate randomly)
-    while(selectedQuestions.length < settings.numOfQuestions) {
+    while (selectedQuestions.length < settings.numOfQuestions) {
         selectedQuestions.add(selectedQuestions[Random().nextInt(selectedQuestions.length)]);
     }
 
