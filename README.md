@@ -12,6 +12,7 @@ The Flutter project lives in the `ai_quiz_generator/` subfolder. From a fresh cl
 4. Run on your preferred device/target
 
 ```bash
+cd AiQuizGenerator
 cd ai_quiz_generator
 flutter pub get
 flutter run
@@ -32,6 +33,11 @@ Notes:
   - iOS/macOS: Xcode, CocoaPods, a simulator or device (macOS only)
   - Web: Chrome (default) or another supported browser
   - Desktop: enable the target with Flutter config if needed
+- Windows Developer Mode
+  - Go to Settings
+  - Go to System
+  - Go to Advanced and scroll down until Developer mode
+  - Enable Developer mode
 
 Optional enables (run once on your machine):
 
@@ -42,20 +48,25 @@ flutter config --enable-windows-desktop
 
 ### Project layout
 
-The Flutter app is inside `ai_quiz_generator/`:
+Repo root:
 
-- `lib/` — your Dart source code (start in `lib/main.dart`)
-- `test/` — unit and widget tests
-- `pubspec.yaml` — app metadata, dependencies, assets, and fonts
+- `ai_quiz_generator/` — the Flutter app (everything below lives here)
+- `LICENSE`, `README.md`
+
+Inside `ai_quiz_generator/`:
+
+- `lib/` — Dart source (entry: `lib/main.dart`)
+  - `constants/` — app constants and config
+  - `controller/` — controllers for AI/auth/exam flows
+  - `data/` — models and services
+  - `screen/` — UI screens (home, exam, auth)
+  - `theme/` — theming
+  - `util/` — helpers
+  - `widgets/` — reusable UI components
+- `backend/` — Python scripts and deps for DB setup/verification
+- `test/` — widget tests
+- `pubspec.yaml` — app metadata, dependencies, assets, fonts
 - `android/`, `ios/`, `web/`, `windows/`, `macos/`, `linux/` — platform runners
-
-Suggested structure as the app grows:
-
-- `lib/screens/` — screens/pages
-- `lib/widgets/` — reusable widgets
-- `lib/services/` — API/services
-- `lib/models/` — data models
-- `assets/` — images, JSON, etc. (declare in `pubspec.yaml`)
 
 ### Day-to-day commands
 
@@ -80,32 +91,6 @@ cd ai_quiz_generator
 - Upgrade: `flutter pub upgrade`
 - Outdated report: `flutter pub outdated`
 
-### Assets and fonts
-
-Place assets under `ai_quiz_generator/assets/` (create it if it doesn’t exist) and declare them in `pubspec.yaml`:
-
-```yaml
-flutter:
-	uses-material-design: true
-	assets:
-		- assets/images/
-		- assets/data/
-```
-
-Then run:
-
-```bash
-flutter pub get
-```
-
-### Code style and linting
-
-This project uses `flutter_lints` (configured via `analysis_options.yaml`).
-
-- Run lints: `flutter analyze`
-- Auto-fix simple issues: `dart fix --apply`
-- Format code: `dart format .`
-
 ### Testing
 
 - Run all tests: `flutter test`
@@ -125,5 +110,3 @@ This project uses `flutter_lints` (configured via `analysis_options.yaml`).
 - If you see SDK constraint errors, update your Flutter SDK to a version that includes Dart >= 3.9.2
 
 ---
-
-Have questions or want scaffolding (routes, folders, and sample screens)? Open an issue or ask, and we can add it.

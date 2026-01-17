@@ -100,7 +100,6 @@ def signup(user: UserLogin):
             "success": False, 
             "message": "Password weak: Needs 8+ chars, Upper, Lower, Digit & Symbol."
         }
-    
     conn = get_db_connection()
     cursor = conn.cursor()
     try:

@@ -97,7 +97,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   }
                   return null;
                 },
-                
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _submitSignup(),
               ),
