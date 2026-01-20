@@ -7,13 +7,7 @@ import 'package:http/http.dart' as http;
 
 class ApiClient {
   static String get baseUrl {
-    bool useHostPC = true;
-
-    const String hostIp = "192.168.100.31";
-
-    if (useHostPC) {
-      return "http://$hostIp:8000";
-    } else if (kIsWeb) {
+    if (kIsWeb) {
       // 1. Check if running on Web
       return "http://localhost:8000";
     } else if (Platform.isAndroid) {
